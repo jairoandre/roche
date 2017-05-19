@@ -19,13 +19,6 @@ export default class Bot {
     this.expertiseC = +inputs[10];
     this.expertiseD = +inputs[11];
     this.expertiseE = +inputs[12];
-    this.avgExpertise =
-      (this.expertiseA +
-        this.expertiseB +
-        this.expertiseC +
-        this.expertiseD +
-        this.expertiseE) /
-      5;
     this.realA = this.storageA + this.expertiseA;
     this.realB = this.storageB + this.expertiseB;
     this.realC = this.storageC + this.expertiseC;
@@ -49,41 +42,6 @@ export default class Bot {
       clonedCloud
     );
   }
-  rate(sample) {
-    const deltaA = this.realA - sample.costA;
-    const deltaB = this.realB - sample.costB;
-    const deltaC = this.realC - sample.costC;
-    const deltaD = this.realD - sample.costD;
-    const deltaE = this.realE - sample.costE;
-    return (deltaA + deltaB + deltaC + deltaD + deltaE) * sample.health;
-  }
-  lessExpensive(samples) {
-    let bestSample;
-    let bestRate;
-    samples.forEach(sample => {
-      const currRate = this.rate(sample);
-      if (!bestSample || currRate > bestRate) {
-        bestSample = sample;
-        bestRate = currRate;
-      }
-    });
-    return bestSample;
-  }
-  samplePrint(sample, availables) {
-    if (sample.costA > this.realA && availables.availableA > 0) {
-      doPrint('CONNECT A');
-    } else if (sample.costB > this.realB && availables.availableB > 0) {
-      doPrint('CONNECT B');
-    } else if (sample.costC > this.realC && availables.availableC > 0) {
-      doPrint('CONNECT C');
-    } else if (sample.costD > this.realD && availables.availableD > 0) {
-      doPrint('CONNECT D');
-    } else if (availables.availableE > 0) {
-      doPrint('CONNECT E');
-    } else {
-      doPrint('WAIT');
-    }
-  }
   canBeProduced(sample) {
     if (sample) {
       const aComponent = sample.costA <= this.realA;
@@ -100,6 +58,12 @@ export default class Bot {
     if (move.type === 'WAIT') {
       clone.eta = Math.max(0, clone.eta - 1);
     } else if (move.type === 'CONNECT') {
+      let sampleToConnect;
+      for (let i = 0, len = this.carriedByMe.length; i < len; i += 1) {
+        if (move.param === this.carriedByMe[i].id) {
+          sampleToConnect = this.carriedByMe[i];
+        }
+      }
     }
     return clone;
   }
